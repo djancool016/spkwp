@@ -3,10 +3,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Homepage extends CI_Controller {
 
+	
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->model('Homepage_m');
+		
 	}
 
 	function index()
@@ -18,6 +20,15 @@ class Homepage extends CI_Controller {
 	{
 		if($this->input->post('data_action'))
 		{
+			$cpu_scores = [];
+			$ram_scores = [];
+			$gpu_scores = [];
+			$storage_scores = [];
+			$price_scores = [];
+			$percent_weights = [0.25,0.20,0.25,0.15,0.15];
+			$sum_vector_s = 0;
+			$vector_s_arr = [];
+			
 			$data_action = $this->input->post('data_action');
 
 			if($data_action == 'fetch_all')
@@ -258,6 +269,165 @@ class Homepage extends CI_Controller {
 				}
 				echo $output;
 			}
+
+			if($data_action == "fetch_score")
+			{
+				if($this->input->post('id_laptop'))
+				{
+					$id_laptop = join(',',$this->input->post('id_laptop'));
+				}
+				else
+				{
+					$id_laptop = "";
+				}
+							
+				$api_url = base_url()."rest/Laptop_Api/fetch_score?id_laptop=$id_laptop";	
+
+				$client = curl_init($api_url);
+                curl_setopt($client, CURLOPT_RETURNTRANSFER, true);
+                $response = curl_exec($client);
+                curl_close($client);
+                $result = json_decode($response);
+
+				$output = '';
+
+				if(count($result) > 0)
+				{
+                    foreach ($result as $row) 
+					{
+						$price = $row->price;
+						switch ($price) {
+							case $price <= 4000000:
+								$price_score = 1;
+								break;
+							case $price <= 6000000:
+								$price_score = 2;
+								break;
+							case $price <= 8000000:
+								$price_score = 3;
+								break;
+							case $price <= 15000000:
+								$price_score = 4;
+								  break;
+							case $price > 15000000:
+								$price_score = 5;
+								break;
+							default:
+								$price_score = 0;
+						  };
+
+						  array_push($cpu_scores,$row->cpu_score);
+						  array_push($ram_scores,$row->ram_score);
+						  array_push($gpu_scores,$row->gpu_score);
+						  array_push($storage_scores,$row->storage_score);
+						  array_push($price_scores,$price_score);
+				
+						$output .='
+						<tr align="center">
+							<td hidden>'.$row->id.'</td>
+							<td>'.$row->laptop.'</td>
+							<td>'.$row->cpu_score.'</td>
+							<td>'.$row->ram_score.'</td>
+							<td>'.$row->gpu_score.'</td>
+							<td>'.$row->storage_score.'</td>
+							<td>'.$price_score.'</td>
+						</tr>
+						';
+                    }					
+				}
+				else
+				{
+					$output .='
+					<tr>
+						<td colspan="8" align="center">Data Tidak Ditemukan</td>
+					</tr>
+					';
+				}
+				echo $output;
+				
+			}
+
+			if($data_action == "fetch_vector")
+			{
+				if($this->input->post('id_laptop'))
+				{
+					$id_laptop = join(',',$this->input->post('id_laptop'));
+				}
+				else
+				{
+					$id_laptop = "";
+				}
+							
+				$api_url = base_url()."rest/Laptop_Api/fetch_score?id_laptop=$id_laptop";	
+
+				$client = curl_init($api_url);
+                curl_setopt($client, CURLOPT_RETURNTRANSFER, true);
+                $response = curl_exec($client);
+                curl_close($client);
+                $result = json_decode($response);
+
+				$output = '';
+
+				if(count($result) > 0)
+				{
+					
+					$i = 0;
+
+                    foreach ($result as $row) 
+					{
+						
+						$price = $row->price;
+						switch ($price) {
+							case $price <= 4000000:
+								$price_score = 1;
+								break;
+							case $price <= 6000000:
+								$price_score = 2;
+								break;
+							case $price <= 8000000:
+								$price_score = 3;
+								break;
+							case $price <= 15000000:
+								$price_score = 4;
+								  break;
+							case $price > 15000000:
+								$price_score = 5;
+								break;
+							default:
+								$price_score = 0;
+						  };
+						  						
+						$vector_s = pow($row->cpu_score,0.25)*pow($row->ram_score,0.20)*pow($row->gpu_score,0.25)*pow($row->storage_score,0.15)*pow($price_score,0.20);
+
+						array_push($vector_s_arr,$vector_s);
+						$sum_vector_s += $vector_s;
+
+						$output .='
+						<tr align="center">
+							<td>'.$row->laptop.'</td>
+							<td>'.$vector_s_arr[$i].'</td>	
+							<td>'.$vector_s_arr[$i]/14.5.'</td>				
+						</tr>
+						';
+
+						$i += 1;
+                    }					
+				}
+				else
+				{
+					$output .='
+					<tr>
+						<td colspan="8" align="center">Data Tidak Ditemukan</td>
+					</tr>
+					';
+				}
+				echo $output;
+				print_r($percent_weights);
+				
+			}
 		}
-	}
+	}		
 }
+
+
+//<td>'.$vector_s_arr[$i]/$sum_vector_s.'</td>

@@ -65,5 +65,18 @@ class Laptop_Api extends CI_Controller
             echo "empty result";
         }
     }
+
+    function fetch_score(){
+        $id_laptop = array_values(explode(',', $this->input->get('id_laptop')));
+        if(count($id_laptop) > 0)
+        {
+            $data = $this->homepage_m->fetch_score($id_laptop);
+            echo json_encode($data->result_array());               
+        }
+        else
+        {
+            echo "empty result";
+        }
+    }
 }
 ?>
