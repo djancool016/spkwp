@@ -1,0 +1,24 @@
+{
+    "editor.wordWrap": "on",
+    "workbench.colorTheme": "Monokai ST3",
+    "python.linting.pylintArgs": ["--generate-members"],
+    // "php.suggest.basic" : false,
+    // "python.analysis.disabled": [
+    //     "unresolved-import"
+    // ]
+    "editor.tokenColorCustomizations": {
+        "[Monokai ST3]": {
+          "textMateRules": [
+            {
+              "scope": ["variable.other.php"],
+              "settings": {
+                "foreground": "#f5b000",
+                "fontStyle": "italic"
+              }
+            }
+          ]
+        }
+      }
+        
+
+}
